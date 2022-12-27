@@ -4,10 +4,10 @@ const fs = require("fs");
 const axios = require("axios");
 
 const subreddit = "r/discordapp";
-let lastPostId = "";
+let lastPost;
 
 if(fs.existsSync("last.dat")) {
-	lastPostId = fs.readFileSync("last.dat").toString();
+	lastPost = JSON.parse(fs.readFileSync("last.dat").toString());
 }
 
 function ProcessPost(post) {
@@ -34,15 +34,15 @@ async function main() {
 	let response = await axios.get(`https://www.reddit.com/${subreddit}/new.json`);
 	let posts = response.data.data.children;
 
-	if(!lastPostId) {
-		lastPostId = posts[0].data.name;
+	if(!lastPost) {
+		lastPost = {date: posts[0].data.created, id: posts[0].data.name};
 		return;
 	}
 
 	let toSend = [];
 
 	for(let post of posts) {
-		if(post.data.name == lastPostId) //have to use this because if someone deletes their post then the "before" get param breaks
+		if(post.data.name === lastPost.name || post.data.created <= lastPost.date) //have to use this because if someone deletes their post then the "before" get param breaks, also <= is needed instead of < so that it doesn't spam if the last post id was deleted and there was another post created at the same second
 			break;
 		toSend.push(post.data);
 	}
@@ -55,8 +55,8 @@ async function main() {
 		await ProcessPost(post);
 	}
 
-	lastPostId = toSend.at(-1).name;
-	fs.writeFileSync("last.dat", lastPostId);
+	lastPost = {date: toSend.at(-1).created, id: toSend.at(-1).name};
+	fs.writeFileSync("last.dat", JSON.stringify(lastPost));
 }
 
 main();
