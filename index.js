@@ -12,7 +12,7 @@ if(fs.existsSync("last.dat")) {
 
 function ProcessPost(post) {
 	let embed = {
-		title: `${subreddit} - ${post.title}`,
+		title: `${subreddit} - ${post.title}`.substring(0, 256),
 		description: post.selftext.substring(0, 512),
 		url: `https://www.reddit.com${post.permalink}`,
 		color: 0xFF5700,
