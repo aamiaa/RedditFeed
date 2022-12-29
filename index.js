@@ -20,7 +20,7 @@ function ProcessPost(post) {
 			name: `u/${post.author}`,
 			url: `https://www.reddit.com/user/${post.author}`
 		},
-		image: post.thumbnail != "self" ? {
+		image: (post.thumbnail_height != undefined && post.thumbnail_width != undefined) ? {
 			url: post.url
 		} : null,
 	}
