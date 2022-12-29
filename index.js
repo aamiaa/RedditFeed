@@ -42,8 +42,9 @@ async function main() {
 	let toSend = [];
 
 	for(let post of posts) {
-		if(post.data.name === lastPost.name || post.data.created <= lastPost.date) //have to use this because if someone deletes their post then the "before" get param breaks, also <= is needed instead of < so that it doesn't spam if the last post id was deleted and there was another post created at the same second
+		if(post.data.name === lastPost.id || post.data.created <= lastPost.date){ //have to use this because if someone deletes their post then the "before" get param breaks, also <= is needed instead of < so that it doesn't spam if the last post id was deleted and there was another post created at the same second
 			break;
+		}
 		toSend.push(post.data);
 	}
 
