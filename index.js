@@ -10,7 +10,13 @@ if(fs.existsSync("last.dat")) {
 	lastPost = JSON.parse(fs.readFileSync("last.dat").toString());
 }
 
-function ProcessPost(post) {
+function sleep(ms) {
+	return new Promise((resolve) => {
+		setTimeout(resolve, ms);
+	});
+}
+
+async function ProcessPost(post) {
 	let embed = {
 		title: `${subreddit} - ${post.title}`.substring(0, 256),
 		description: post.selftext.substring(0, 512),
@@ -25,9 +31,14 @@ function ProcessPost(post) {
 		} : null,
 	}
 
-	return axios.post(`https://discordapp.com/api/webhooks/${process.env.WEBHOOK_ID}/${process.env.WEBHOOK_TOKEN}`, {
-		embeds: [embed]
-	});
+	try {
+		await axios.post(`https://discordapp.com/api/webhooks/${process.env.WEBHOOK_ID}/${process.env.WEBHOOK_TOKEN}`, {
+			embeds: [embed]
+		});
+		await sleep(2000);
+	} catch(ex) {
+		console.error("Failed to send post", embed, "because", ex.response.data)
+	}
 }
 
 async function main() {
@@ -36,7 +47,7 @@ async function main() {
 
 	if(!lastPost) {
 		lastPost = {date: posts[0].data.created, id: posts[0].data.name};
-		return;
+		return setTimeout(main, 30 * 1000);;
 	}
 
 	let toSend = [];
@@ -49,7 +60,7 @@ async function main() {
 	}
 
 	if(toSend.length === 0)
-		return;
+		return setTimeout(main, 30 * 1000);;
 
 	for(let post of toSend.reverse()) {
 		console.log("Processing post", post.name, "-", post.title)
@@ -58,7 +69,8 @@ async function main() {
 
 	lastPost = {date: toSend.at(-1).created, id: toSend.at(-1).name};
 	fs.writeFileSync("last.dat", JSON.stringify(lastPost));
+
+	setTimeout(main, 30 * 1000);
 }
 
 main();
-setInterval(main, 30 * 1000);
