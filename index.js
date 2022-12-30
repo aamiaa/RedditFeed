@@ -26,9 +26,11 @@ async function ProcessPost(post) {
 			name: `u/${post.author}`,
 			url: `https://www.reddit.com/user/${post.author}`
 		},
-		image: (post.thumbnail_height != undefined && post.thumbnail_width != undefined) ? {
+		image: post.media_metadata != undefined ? {
+			url: post.media_metadata[Object.keys(post.media_metadata)[0]].s.u.replaceAll("&amp;", "&")
+		} : (post.thumbnail_height != undefined && post.thumbnail_width != undefined ? {
 			url: post.url
-		} : null,
+		} : null)
 	}
 
 	try {
