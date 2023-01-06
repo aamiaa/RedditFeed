@@ -16,7 +16,38 @@ function sleep(ms) {
 	});
 }
 
+function GetImageUrl(post) {
+	if(post.media_metadata) {
+		let id;
+		if(post.gallery_data) {
+			id = post.gallery_data.items[0].media_id;
+		} else {
+			id = Object.keys(post.media_metadata)[0];
+		}
+		
+		let data = post.media_metadata[id];
+
+		let url;
+		if(data.e === "Image") {
+			url = data.s.u
+		} else if(data.e === "AnimatedImage") {
+			url = data.s.gif;
+		} else {
+			console.error("wtf is this image", data.e, post.name);
+			return null;
+		}
+		url = url.replaceAll("&amp;", "&");
+		return url;
+	} else if(post.thumbnail_width != undefined && post.thumbnail_height != undefined) {
+		return post.url;
+	} else {
+		return null;
+	}
+}
+
 async function ProcessPost(post) {
+	let imageUrl = GetImageUrl(post);
+
 	let embed = {
 		title: `${subreddit} - ${post.title}`.substring(0, 256),
 		description: post.selftext.substring(0, 512),
@@ -26,13 +57,9 @@ async function ProcessPost(post) {
 			name: `u/${post.author}`,
 			url: `https://www.reddit.com/user/${post.author}`
 		},
-		image: post.media_metadata != undefined ? (post.gallery_data != undefined ? {
-			url: post.media_metadata[post.gallery_data.items[0].media_id].s.u.replaceAll("&amp;", "&")
-		} : {
-			url: post.media_metadata[Object.keys(post.media_metadata)[0]].s.u.replaceAll("&amp;", "&")
-		}) : (post.thumbnail_height != undefined && post.thumbnail_width != undefined ? {
-			url: post.url
-		} : null)
+		image: imageUrl ? {
+			url: imageUrl
+		} : null
 	}
 
 	try {
@@ -51,7 +78,7 @@ async function main() {
 
 	if(!lastPost) {
 		lastPost = {date: posts[0].data.created, id: posts[0].data.name};
-		return setTimeout(main, 30 * 1000);;
+		return setTimeout(main, 60 * 1000);;
 	}
 
 	let toSend = [];
@@ -64,7 +91,7 @@ async function main() {
 	}
 
 	if(toSend.length === 0)
-		return setTimeout(main, 30 * 1000);;
+		return setTimeout(main, 60 * 1000);;
 
 	for(let post of toSend.reverse()) {
 		console.log("Processing post", post.name, "-", post.title)
@@ -74,7 +101,7 @@ async function main() {
 	lastPost = {date: toSend.at(-1).created, id: toSend.at(-1).name};
 	fs.writeFileSync("last.dat", JSON.stringify(lastPost));
 
-	setTimeout(main, 30 * 1000);
+	setTimeout(main, 60 * 1000);
 }
 
 main();
