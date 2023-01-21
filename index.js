@@ -73,12 +73,18 @@ async function ProcessPost(post) {
 }
 
 async function main() {
-	let response = await axios.get(`https://www.reddit.com/${subreddit}/new.json`);
+	let response;
+	try {
+		response = await axios.get(`https://www.reddit.com/${subreddit}/new.json`);
+	} catch(ex) {
+		console.error("Got error", ex?.message || ex)
+		return setTimeout(main, 60 * 1000);
+	}
 	let posts = response.data.data.children;
 
 	if(!lastPost) {
 		lastPost = {date: posts[0].data.created, id: posts[0].data.name};
-		return setTimeout(main, 60 * 1000);;
+		return setTimeout(main, 60 * 1000);
 	}
 
 	let toSend = [];
@@ -91,7 +97,7 @@ async function main() {
 	}
 
 	if(toSend.length === 0)
-		return setTimeout(main, 60 * 1000);;
+		return setTimeout(main, 60 * 1000);
 
 	for(let post of toSend.reverse()) {
 		console.log("Processing post", post.name, "-", post.title)
