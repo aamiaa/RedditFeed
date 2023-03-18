@@ -38,6 +38,8 @@ function GetImageUrl(post) {
 		}
 		url = url.replaceAll("&amp;", "&");
 		return url;
+	} else if(post?.preview?.images?.[0]?.source?.url) {
+		return post.preview.images[0].source.url.replaceAll("&amp;", "&");
 	} else if(post.thumbnail_width != undefined && post.thumbnail_height != undefined) {
 		if(post.crosspost_parent_list) {
 			return GetImageUrl(post.crosspost_parent_list[0])
