@@ -39,7 +39,11 @@ function GetImageUrl(post) {
 		url = url.replaceAll("&amp;", "&");
 		return url;
 	} else if(post.thumbnail_width != undefined && post.thumbnail_height != undefined) {
-		return post.url;
+		if(post.crosspost_parent_list) {
+			return GetImageUrl(post.crosspost_parent_list[0])
+		} else {
+			return post.url;
+		}
 	} else {
 		return null;
 	}
