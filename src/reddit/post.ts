@@ -1,0 +1,89 @@
+import axios from "axios"
+import {XMLParser} from "fast-xml-parser"
+import {parse} from "node-html-parser"
+
+interface RedditRSSRoot {
+	feed: {
+		entry: RedditRSSEntry[]
+	}
+}
+
+interface RedditRSSEntry {
+	author: {
+		name: string,
+		uri: string
+	},
+	category: {
+		"@_term": string,
+		"@_label": string
+	},
+	content: {
+		"#text": string,
+		"@_type": string
+	},
+	id: string,
+	media_thumbnail?: {
+		"@_url": string
+	},
+	link: {
+		"@_href": string
+	},
+	updated: string,
+	published: string,
+	title: string
+}
+
+export interface RedditPost {
+	id: string,
+
+	author_name: string,
+	title: string,
+	content?: string,
+
+	image_url?: string, // i.redd.it or preview.redd.it extracted from content html
+	thumbnail_url?: string, // preview.redd.it or thumbs.redditmedia.com, usually small resolution resolution
+	link: string,
+	date: Date
+}
+
+export function parseRedditPost(entry: RedditRSSEntry): RedditPost {
+	const contentDOM = parse(entry.content["#text"])
+
+	const authorName = entry.author.name.match(/^\/u\/(.+)$/)?.[1] ?? "(Unknown)"
+	const contentText = contentDOM.querySelector(".md")?.text
+
+	const links = contentDOM.querySelectorAll("a[href]").map(x => {
+		const url = x.getAttribute("href") as string
+		return {
+			host: new URL(url).hostname,
+			url
+		}
+	})
+	const imageLink = links.find(x => x.host === "i.redd.it") ?? links.find(x => x.host === "preview.redd.it")
+
+	return {
+		id: entry.id,
+		author_name: authorName,
+		title: entry.title,
+		content: contentText,
+		image_url: imageLink?.url,
+		thumbnail_url: entry.media_thumbnail?.["@_url"],
+		link: entry.link["@_href"],
+		date: new Date(entry.published)
+	}
+}
+
+export async function getPosts(subreddit: string): Promise<RedditPost[]> {
+	const res = await axios.get(`https://www.reddit.com/${subreddit}/new.rss?sort=new`)
+	const obj: RedditRSSRoot = new XMLParser({
+		ignoreAttributes: false,
+		updateTag(tagName, jPath, attrs) {
+			if(tagName === "media:thumbnail") {
+				return "media_thumbnail"
+			}
+			return true
+		},
+	}).parse(res.data)
+
+	return obj.feed.entry.map(parseRedditPost)
+}

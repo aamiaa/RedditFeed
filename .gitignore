@@ -1,3 +1,4 @@
 node_modules
-last.dat
+cache.json
 .env
+dist
