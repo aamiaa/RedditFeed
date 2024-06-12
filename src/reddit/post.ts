@@ -54,11 +54,18 @@ export function parseRedditPost(entry: RedditRSSEntry): RedditPost {
 
 	const links = contentDOM.querySelectorAll("a[href]").map(x => {
 		const url = x.getAttribute("href") as string
-		return {
-			host: new URL(url).hostname,
-			url
+
+		// In case of cross-posts, the href attribute might just be a path
+		// ex. <a href="/r/somesub">
+		try {
+			return {
+				host: new URL(url).hostname,
+				url
+			}
+		} catch(ex) {
+			return null
 		}
-	})
+	}).filter(x => x != null)
 	const imageLink = links.find(x => x.host === "i.redd.it") ?? links.find(x => x.host === "preview.redd.it")
 
 	return {
