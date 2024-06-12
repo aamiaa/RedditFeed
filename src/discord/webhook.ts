@@ -3,11 +3,15 @@ import { RedditPost } from "../reddit/post";
 import { sleep } from "../util";
 
 export async function sendPost(subreddit: string, post: RedditPost) {
+	let content = post.content?.substring(0, 512)
+	if(post.has_gallery) {
+		content += "\n\n[This post has an image gallery]"
+	}
 	const imageUrl = post.image_url ?? post.thumbnail_url
 
 	const embed = {
 		title: `${subreddit} - ${post.title.substring(0, 256)}`,
-		description: post.content?.substring(0, 512),
+		description: content,
 		url: post.link,
 		color: 0xFF5700,
 		author: {

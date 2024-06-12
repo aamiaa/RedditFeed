@@ -42,6 +42,7 @@ export interface RedditPost {
 
 	image_url?: string, // i.redd.it or preview.redd.it extracted from content html
 	thumbnail_url?: string, // preview.redd.it or thumbs.redditmedia.com, usually small resolution resolution
+	has_gallery: boolean,
 	link: string,
 	date: Date
 }
@@ -53,28 +54,33 @@ export function parseRedditPost(entry: RedditRSSEntry): RedditPost {
 	const contentText = contentDOM.querySelector(".md")?.text
 
 	const links = contentDOM.querySelectorAll("a[href]").map(x => {
-		const url = x.getAttribute("href") as string
+		const urlStr = x.getAttribute("href") as string
 
 		// In case of cross-posts, the href attribute might just be a path
 		// ex. <a href="/r/somesub">
 		try {
+			const url = new URL(urlStr)
 			return {
-				host: new URL(url).hostname,
-				url
+				url,
+				urlStr,
+				host: url.hostname,
 			}
 		} catch(ex) {
 			return null
 		}
 	}).filter(x => x != null)
+
 	const imageLink = links.find(x => x.host === "i.redd.it") ?? links.find(x => x.host === "preview.redd.it")
+	const hasGallery = links.find(x => x.host === "www.reddit.com" && x.url.pathname.startsWith("/gallery/"))
 
 	return {
 		id: entry.id,
 		author_name: authorName,
 		title: entry.title,
 		content: contentText,
-		image_url: imageLink?.url,
+		image_url: imageLink?.urlStr,
 		thumbnail_url: entry.media_thumbnail?.["@_url"],
+		has_gallery: !!hasGallery,
 		link: entry.link["@_href"],
 		date: new Date(entry.published)
 	}
