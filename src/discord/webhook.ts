@@ -16,7 +16,8 @@ export async function sendPost(subreddit: string, post: RedditPost) {
 		},
 		image: imageUrl ? {
 			url: imageUrl
-		} : null
+		} : null,
+		timestamp: post.date.toISOString()
 	}
 
 	try {
