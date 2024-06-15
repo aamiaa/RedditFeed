@@ -3,7 +3,7 @@ import { RedditPost } from "../reddit/post";
 import { sleep } from "../util";
 
 export async function sendPost(subreddit: string, post: RedditPost) {
-	let content = post.content?.substring(0, 512)
+	let content = post.content?.substring(0, 512) ?? ""
 	if(post.has_gallery) {
 		content += "\n\n[This post has an image gallery]"
 	}
