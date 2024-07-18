@@ -36,7 +36,7 @@ interface RedditRSSEntry {
 export interface RedditPost {
 	id: string,
 
-	author_name: string,
+	author_name?: string,
 	title: string,
 	content?: string,
 
@@ -50,7 +50,8 @@ export interface RedditPost {
 export function parseRedditPost(entry: RedditRSSEntry): RedditPost {
 	const contentDOM = parse(entry.content["#text"])
 
-	const authorName = entry.author.name.match(/^\/u\/(.+)$/)?.[1] ?? "(Unknown)"
+	// `entry.author` will be null if the user is [deleted]
+	const authorName = entry.author?.name?.match(/^\/u\/(.+)$/)?.[1] ?? null
 	const contentText = contentDOM.querySelector(".md")?.text
 
 	const links = contentDOM.querySelectorAll("a[href]").map(x => {

@@ -14,9 +14,11 @@ export async function sendPost(subreddit: string, post: RedditPost) {
 		description: content,
 		url: post.link,
 		color: 0xFF5700,
-		author: {
+		author: post.author_name != null ? {
 			name: `u/${post.author_name}`,
 			url: `https://www.reddit.com/user/${post.author_name}`
+		} : {
+			name: "[deleted]"
 		},
 		image: imageUrl ? {
 			url: imageUrl
