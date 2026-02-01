@@ -26,7 +26,7 @@ export async function sendPost(subreddit: string, post: RedditPost) {
 	}
 
 	try {
-		await fetch(`https://discordapp.com/api/webhooks/${process.env.WEBHOOK_ID}/${process.env.WEBHOOK_TOKEN}`, {
+		await fetch(`https://discord.com/api/webhooks/${process.env.WEBHOOK_ID}/${process.env.WEBHOOK_TOKEN}`, {
 			method: "POST",
 			body: JSON.stringify({
 				embeds: [embed]
@@ -37,6 +37,6 @@ export async function sendPost(subreddit: string, post: RedditPost) {
 		})
 		await sleep(2000);
 	} catch(ex: any) {
-		console.error("Failed to send post", embed, "because", ex.response.data)
+		console.error("Failed to send post", embed, "because", ex)
 	}
 }
