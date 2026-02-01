@@ -1,4 +1,3 @@
-import axios from "axios"
 import {XMLParser} from "fast-xml-parser"
 import {parse} from "node-html-parser"
 
@@ -88,7 +87,8 @@ export function parseRedditPost(entry: RedditRSSEntry): RedditPost {
 }
 
 export async function getPosts(subreddit: string): Promise<RedditPost[]> {
-	const res = await axios.get(`https://www.reddit.com/${subreddit}/new.rss?sort=new`)
+	const res = await fetch(`https://www.reddit.com/${subreddit}/new.rss?sort=new`)
+	const data = await res.text()
 	const obj: RedditRSSRoot = new XMLParser({
 		ignoreAttributes: false,
 		updateTag(tagName, jPath, attrs) {
@@ -97,7 +97,7 @@ export async function getPosts(subreddit: string): Promise<RedditPost[]> {
 			}
 			return true
 		},
-	}).parse(res.data)
+	}).parse(data)
 
 	return obj.feed.entry.map(parseRedditPost)
 }

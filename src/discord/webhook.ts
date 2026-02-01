@@ -1,4 +1,3 @@
-import axios from "axios"
 import { RedditPost } from "../reddit/post";
 import { sleep } from "../util";
 
@@ -27,9 +26,15 @@ export async function sendPost(subreddit: string, post: RedditPost) {
 	}
 
 	try {
-		await axios.post(`https://discordapp.com/api/webhooks/${process.env.WEBHOOK_ID}/${process.env.WEBHOOK_TOKEN}`, {
-			embeds: [embed]
-		});
+		await fetch(`https://discordapp.com/api/webhooks/${process.env.WEBHOOK_ID}/${process.env.WEBHOOK_TOKEN}`, {
+			method: "POST",
+			body: JSON.stringify({
+				embeds: [embed]
+			}),
+			headers: {
+				"Content-Type": "application/json"
+			}
+		})
 		await sleep(2000);
 	} catch(ex: any) {
 		console.error("Failed to send post", embed, "because", ex.response.data)
